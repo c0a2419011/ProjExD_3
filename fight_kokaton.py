@@ -10,30 +10,6 @@ HEIGHT = 650  # ゲームウィンドウの高さ
 NUM_OF_BOMBS=5 #爆弾の数を表す定数
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
-    """
-    オブジェクトが画面内or画面外を判定し，真理値タプルを返す関数
-    引数：こうかとんや爆弾，ビームなどのRect
-    戻り値：横方向，縦方向のはみ出し判定結果（画面内：True／画面外：False）
-    """
-    yoko, tate = True, True
-    if obj_rct.left < 0 or WIDTH < obj_rct.right:
-        yoko = False
-    if obj_rct.top < 0 or HEIGHT < obj_rct.bottom:
-        tate = False
-    return yoko, tate
-class Score:
-    def __init__(self):
-        self.fonto=pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)#フォント設定
-        self.color=(0,0,255) #青
-        self.score=0 #スコアの初期値の設定
-        self.img=self.fonto.render(f"score:{str(self.score)}", 0, (0,0,255))#文字列surfaceの作成
-        self.img_c = self.img.get_rect()
-        self.img_c.center =(100,HEIGHT-50)
-    def update(self,screen):
-        self.fonto=pg.font.Font(None,30)
-        self.img=self.fonto.render(f"score:{str(self.score)}", 0, (0,0,255))#文字列surfaceの作成
-        screen.blit(self.img,self.img_c)
 def check_bound(beam_instance) -> tuple[bool,bool]:
     #引数　こうかとんrectまたは爆弾rect
     #戻り値:判定結果タプル(横、縦)
@@ -45,7 +21,24 @@ def check_bound(beam_instance) -> tuple[bool,bool]:
         #縦方向判定
     if beam_instance.top < 0 or HEIGHT < beam_instance.bottom:#画面内だったら
         tate =False
-    return (yoko,tate)        
+        
+    return (yoko,tate)  
+
+class Score:
+    def __init__(self):
+        self.fonto=pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)#フォント設定
+        self.color=(0,0,255) #青
+        self.score=0 #スコアの初期値の設定
+        self.img=self.fonto.render(f"score:{str(self.score)}", 0, (0,0,255))#文字列surfaceの作成
+        self.img_c = self.img.get_rect()
+        self.img_c.center =(100,HEIGHT-50)
+        
+    def update(self,screen):
+        self.fonto=pg.font.Font(None,30)
+        self.img=self.fonto.render(f"score:{str(self.score)}", 0, (0,0,255))#文字列surfaceの作成
+        screen.blit(self.img,self.img_c)
+        
+      
    
         
     
@@ -224,7 +217,7 @@ def main():
                 # if beam_instance.colliderect(bomb.rct):#ビームと爆弾の衝突関係
                     
 
-                    
+              
                     bird.change_img(6, screen) 
                 beam_instance=[beam for beam in beam_instance if beam is not None]#要素がNoneでないものだけのリスト
         bombs=[bomb for bomb in bombs if bomb is not None]#撃ち落されていない爆弾だけのリスト
@@ -238,7 +231,7 @@ def main():
             bomb.update(screen)
         for b,beam in enumerate(beam_instance):
             if check_bound(beam.rct) != (True,True):#画面の外だったら
-                del beam_instance[b]
+                beam_instance.remove(beam_instance[b])
             else:
                 beam.update(screen)
         score.update(screen)
