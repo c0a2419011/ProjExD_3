@@ -22,7 +22,22 @@ def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
     if obj_rct.top < 0 or HEIGHT < obj_rct.bottom:
         tate = False
     return yoko, tate
-
+class Score:
+    def __init__(self):
+        self.fonto=pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)#フォント設定
+        self.color=(0,0,255) #青
+        self.score=0 #スコアの初期値の設定
+        self.img=self.fonto.render(f"スコア:{str(self.score)}", 0, (0,0,255))#文字列surfaceの作成
+        self.img_c = self.img.get_rect()
+        self.img_c.center =(100,HEIGHT-50)
+    def update(self,screen):
+        self.fonto=pg.font.Font(None,30)
+        self.img=self.fonto.render(f"スコア:{str(self.score)}", 0, (0,0,255))#文字列surfaceの作成
+        screen.blit(self.img,self.img_c)
+        
+        
+        
+    
 
 class Bird:
     """
@@ -152,6 +167,7 @@ def main():
     clock = pg.time.Clock()
     tmr = 0
     bombs=[]
+    score=Score()
     for i in range(NUM_OF_BOMBS):
         bombs.append(Bomb((255, 0, 0), 10))
         
@@ -185,6 +201,9 @@ def main():
                     bomb=None #爆弾を消す
                     bird.change_img(6, screen) #喜びエフェクト
                     bombs[j]=None #爆弾を消す
+                    score.score+=1
+                    
+                    
                     bird.change_img(6, screen)
             bombs=[bomb for bomb in bombs if bomb is not None]#撃ち落されていない爆弾だけのリスト
             
@@ -195,9 +214,12 @@ def main():
         
         for bomb in bombs: 
             bomb.update(screen)
+        score.update(screen)
         pg.display.update()
+    
         tmr += 1
         clock.tick(50)
+        
 
 
 if __name__ == "__main__":
