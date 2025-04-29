@@ -27,15 +27,26 @@ class Score:
         self.fonto=pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)#フォント設定
         self.color=(0,0,255) #青
         self.score=0 #スコアの初期値の設定
-        self.img=self.fonto.render(f"スコア:{str(self.score)}", 0, (0,0,255))#文字列surfaceの作成
+        self.img=self.fonto.render(f"score:{str(self.score)}", 0, (0,0,255))#文字列surfaceの作成
         self.img_c = self.img.get_rect()
         self.img_c.center =(100,HEIGHT-50)
     def update(self,screen):
         self.fonto=pg.font.Font(None,30)
-        self.img=self.fonto.render(f"スコア:{str(self.score)}", 0, (0,0,255))#文字列surfaceの作成
+        self.img=self.fonto.render(f"score:{str(self.score)}", 0, (0,0,255))#文字列surfaceの作成
         screen.blit(self.img,self.img_c)
-        
-        
+def check_bound(beam_instance) -> tuple[bool,bool]:
+    #引数　こうかとんrectまたは爆弾rect
+    #戻り値:判定結果タプル(横、縦)
+    #画面内ならTrue，画面外ならFalse
+    yoko,tate=True,True #横方向、縦方向の判定
+    #横方向判定
+    if beam_instance.left < 0 or WIDTH < beam_instance.right:#画面外だったら
+        yoko=False
+        #縦方向判定
+    if beam_instance.top < 0 or HEIGHT < beam_instance.bottom:#画面内だったら
+        tate =False
+    return (yoko,tate)        
+   
         
     
 
@@ -158,6 +169,7 @@ class Bomb:
 
 
 def main():
+    sum_mv = [0, 0]#合計移動量リスト
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
@@ -167,17 +179,18 @@ def main():
     clock = pg.time.Clock()
     tmr = 0
     bombs=[]
+    beam_instance=[]
     score=Score()
     for i in range(NUM_OF_BOMBS):
         bombs.append(Bomb((255, 0, 0), 10))
-        
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                  # スペースキー押下でBeamクラスのインスタンス生成
-                 beam = Beam(bird)            
+                #  beam = Beam(bird)
+                 beam_instance.append(Beam(bird))         
         screen.blit(bg_img, [0, 0])
         # if bomb is not None:
         for bomb in bombs:
@@ -191,21 +204,30 @@ def main():
                 pg.display.update()
                 time.sleep(1)
                 return
+        
+            
+                
+            
+                
         # if beam is not None:
             # if bomb is not None:
         for j,bomb in enumerate(bombs):
-            if beam is not None:
-                
-                if beam.rct.colliderect(bomb.rct):#ビームと爆弾の衝突関係
-                    beam=None #ビームを消す
-                    bomb=None #爆弾を消す
-                    bird.change_img(6, screen) #喜びエフェクト
-                    bombs[j]=None #爆弾を消す
-                    score.score+=1
+            for a,beam in enumerate(beam_instance):
+                if beam is not None:
+                    if beam.rct.colliderect(bomb.rct):#ビームと爆弾の衝突関係
+                        beam_instance[a]=None #ビームを消す
+                        bombs[j]=None #爆弾を消す
+                        bird.change_img(6, screen) #喜びエフェクト
+                        # bombs[j]=None #爆弾を消す
+                        score.score+=1
+                        pg.display.update()
+                # if beam_instance.colliderect(bomb.rct):#ビームと爆弾の衝突関係
                     
+
                     
-                    bird.change_img(6, screen)
-            bombs=[bomb for bomb in bombs if bomb is not None]#撃ち落されていない爆弾だけのリスト
+                    bird.change_img(6, screen) 
+                beam_instance=[beam for beam in beam_instance if beam is not None]#要素がNoneでないものだけのリスト
+        bombs=[bomb for bomb in bombs if bomb is not None]#撃ち落されていない爆弾だけのリスト
             
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
@@ -214,6 +236,11 @@ def main():
         
         for bomb in bombs: 
             bomb.update(screen)
+        for b,beam in enumerate(beam_instance):
+            if check_bound(beam.rct) != (True,True):#画面の外だったら
+                del beam_instance[b]
+            else:
+                beam.update(screen)
         score.update(screen)
         pg.display.update()
     
